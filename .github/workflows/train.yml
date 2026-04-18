@@ -1,4 +1,4 @@
-name: Koda Infinite Intelligence
+name: Koda Universal Intelligence
 on: [push]
 jobs:
   train:
@@ -15,56 +15,32 @@ jobs:
       - name: Install Libraries
         run: pip install numpy requests
 
-      - name: The Great Learning (التدريب بلا حدود)
+      - name: Global Knowledge Hunter (صيد المعرفة العالمية)
         run: |
           python -c "
-          import os, requests, numpy as np, time
-          
-          # 1. صيد المستودعات العالمية (بدون تحديد عدد محدد)
+          import os, requests
+          # كل المجالات اللي طلبتها (برمجة، رياضيات، لغات، تحليل)
+          topics = ['machine-learning', 'deep-learning', 'algorithms', 'mathematics', 'natural-language-processing', 'operating-systems', 'cpp', 'python', 'javascript', 'rust', 'cybersecurity']
           os.makedirs('external', exist_ok=True)
-          categories = ['fullstack', 'artificial-intelligence', 'mathematics', 'algorithms', 'operating-systems']
-          for cat in categories:
-              r_data = requests.get(f'https://api.github.com/search/repositories?q={cat}&sort=stars').json()
-              for repo in r_data.get('items', []):
-                  print(f'📥 استيعاب مستودع: {repo[\"name\"]}')
-                  os.system(f'git clone --depth 1 {repo[\"clone_url\"]} external/{repo[\"name\"]}')
-
-          # 2. مرحلة "الفهم العميق" (بدون أرقام دورات)
-          # الكود هيلف على كل حرف في كل ملف موجود في مجلد external
-          vocab = set()
-          all_files = []
-          for root, _, files in os.walk('external'):
-              for f in files:
-                  if f.endswith(('.py', '.cpp', '.h', '.js', '.txt', '.java', '.c', '.html', '.css')):
-                      all_files.append(os.path.join(root, f))
-          
-          print(f'🧠 كودا يبدأ الآن قراءة {len(all_files)} ملف برمجي بعمق...')
-
-          # بناء المصفوفات بناءً على حجم البيانات الفعلي
-          for file_path in all_files:
+          for topic in topics:
+              print(f'🔎 جاري سحب علوم: {topic}')
+              # جلب 30 مستودع من كل مجال (لضمان عدم تجاوز وقت السيرفر)
+              url = f'https://api.github.com/search/repositories?q={topic}&sort=stars&order=desc&per_page=30'
               try:
-                  with open(file_path, 'r', encoding='utf-8') as f:
-                      content = f.read()
-                      # إضافة كل حرف جديد للقاموس (بدون تحديد حجم)
-                      for char in content:
-                          vocab.add(char)
-                      
-                      # محاكاة الربط العصبي (مثل ChatGPT)
-                      # هنا بيتم تحليل "المنطق" مش بس الحروف
-                      print(f'📖 فهم وتحليل: {os.path.basename(file_path)} | الحروف المكتشفة: {len(vocab)}')
-                      
-                      # عملية معالجة لكل ملف لضمان "الفهم" وليس مجرد القراءة
-                      dummy_weights = np.random.randn(len(vocab) if vocab else 1, 10)
-                      _ = np.dot(dummy_weights.T, dummy_weights)
+                  repos = requests.get(url).json().get('items', [])
+                  for repo in repos:
+                      os.system(f'git clone --depth 1 {repo[\"clone_url\"]} external/{repo[\"name\"]}')
               except: continue
-
-          # 3. حفظ "العقل المكتمل"
-          np.savez('koda_final_intelligence.npz', vocab=list(vocab))
-          print('✅ كودا الآن يمتلك وعياً برمجياً كاملاً بالمستودعات الممسوحة.')
           "
 
-      - name: Upload Koda Brain
+      - name: Run Koda Multi-Brain Engine (التفكير والفهم)
+        run: python koda_brain.py
+
+      - name: Final Artifact Delivery (تسليم العقل النهائي)
+        # دي الخطوة اللي كانت ناقصة.. هي دي اللي بتديك المجلد في الآخر
         uses: actions/upload-artifact@v4
         with:
-          name: koda-brain-v1
-          path: koda_final_intelligence.npz
+          name: Koda-Final-Intelligence-Model
+          path: |
+            koda_brain_weights.npz
+            vocab_data.json
