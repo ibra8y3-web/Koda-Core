@@ -1,44 +1,25 @@
-name: Koda Universal Master Brain
-on:
-  push:
-    branches: [ "main", "master" ]
-
+name: Koda-Final-System
+on: [push]
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
-  Train:
+  Build:
     runs-on: ubuntu-latest
     steps:
-      - name: 🧹 تنظيف السيرفر لأقصى درجة
-        run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
-          sudo apt-get clean
-          
-      - name: 📥 سحب الكود الحالي
-        uses: actions/checkout@v4
-        
-      - name: ⚙️ تجهيز البيئة
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          
-      - name: 📦 تثبيت مكتبات الذكاء (NLP & ML)
-        run: pip install numpy tensorflow keras transformers nltk torch
-        
-      - name: 🧠 سحب ذكي + تدريب عميق
-        continue-on-error: true
+      - uses: actions/checkout@v4
+      - name: Cleanup
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc && sudo apt-get clean
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.10'}
+      - name: Install All
+        run: pip install numpy tensorflow torch transformers nltk scikit-learn
+      - name: Run Koda
         run: |
           python init_koda.py
           python main_brain.py
-          
-      - name: 💾 رفع العقل النهائي (Artifact)
+      - name: Upload
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: Koda-Final-Brain
-          path: |
-            *.h5
-            *.json
-            models/
+          path: Koda_LLM/
