@@ -1,25 +1,28 @@
-name: Koda-Final-System
+name: Koda-Zero-Space-Build
 on: [push]
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
-  Build:
+  Train:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Cleanup
-        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc && sudo apt-get clean
+      - name: 🚨 تنظيف عميق للسيرفر
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/powershell /usr/local/lib/node_modules
+          sudo apt-get clean
+          df -h # هيعرضلك المساحة الفاضية (هتلاقيها زادت جداً)
       - uses: actions/setup-python@v5
         with: {python-version: '3.10'}
-      - name: Install All
-        run: pip install numpy tensorflow torch transformers nltk scikit-learn
-      - name: Run Koda
+      - name: 📦 تثبيت المكتبات
+        run: pip install numpy torch transformers nltk
+      - name: 🧠 الشفط والتدريب
         run: |
           python init_koda.py
           python main_brain.py
-      - name: Upload
+      - name: 💾 حفظ العقل
         uses: actions/upload-artifact@v4
         with:
-          name: Koda-Final-Brain
+          name: Koda-Ultra-Brain
           path: Koda_LLM/
