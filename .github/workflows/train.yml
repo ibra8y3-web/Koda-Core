@@ -1,8 +1,20 @@
-name: Koda Training
+name: Koda Cloud Training
 on: [push]
 jobs:
   train:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - run: python koda_brain.py
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Libraries
+        run: |
+          pip install numpy
+
+      - name: Run Koda Engine
+        run: python koda_brain.py
