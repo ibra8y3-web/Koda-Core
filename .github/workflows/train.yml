@@ -49,3 +49,9 @@ jobs:
           path: |
             koda_brain_weights.npz
             vocab_data.json
+
+      - name: Save Koda Memory
+        uses: actions/upload-artifact@v4
+        with:
+          name: Koda-Updated-Intelligence
+          path: koda_brain_weights.npz
