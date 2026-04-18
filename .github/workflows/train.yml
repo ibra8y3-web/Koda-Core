@@ -1,4 +1,4 @@
-name: Koda Universal Intelligence
+name: Koda Universal Intelligence (General + Tech)
 on: [push]
 jobs:
   train:
@@ -15,32 +15,37 @@ jobs:
       - name: Install Libraries
         run: pip install numpy requests
 
-      - name: Global Knowledge Hunter (صيد المعرفة العالمية)
+      - name: Global Knowledge Hunter (صيد المعرفة الشاملة)
         run: |
           python -c "
           import os, requests
-          # كل المجالات اللي طلبتها (برمجة، رياضيات، لغات، تحليل)
-          topics = ['machine-learning', 'deep-learning', 'algorithms', 'mathematics', 'natural-language-processing', 'operating-systems', 'cpp', 'python', 'javascript', 'rust', 'cybersecurity']
+          # دمجنا التقنية مع العلوم العامة
+          topics = [
+              'machine-learning', 'algorithms', 'python', 'cpp', 'cybersecurity',
+              'knowledge-base', 'science-data', 'history-archive', 
+              'mathematics-logic', 'philosophy-books', 'linguistics', 
+              'general-knowledge', 'world-factbook', 'physics-engine'
+          ]
           os.makedirs('external', exist_ok=True)
           for topic in topics:
-              print(f'🔎 جاري سحب علوم: {topic}')
-              # جلب 30 مستودع من كل مجال (لضمان عدم تجاوز وقت السيرفر)
-              url = f'https://api.github.com/search/repositories?q={topic}&sort=stars&order=desc&per_page=30'
+              print(f'🌍 جاري استكشاف مجال: {topic}')
+              # رفعنا العدد لـ 50 مستودع من كل مجال لزيادة "الوعي"
+              url = f'https://api.github.com/search/repositories?q={topic}&sort=stars&order=desc&per_page=50'
               try:
                   repos = requests.get(url).json().get('items', [])
                   for repo in repos:
+                      # سحب المجلدات للمقارنة والفهم
                       os.system(f'git clone --depth 1 {repo[\"clone_url\"]} external/{repo[\"name\"]}')
               except: continue
           "
 
-      - name: Run Koda Multi-Brain Engine (التفكير والفهم)
+      - name: Run Koda Multi-Brain Engine (بدء الاستيعاب)
         run: python koda_brain.py
 
-      - name: Final Artifact Delivery (تسليم العقل النهائي)
-        # دي الخطوة اللي كانت ناقصة.. هي دي اللي بتديك المجلد في الآخر
+      - name: Save & Deliver Final Intelligence (تحميل العقل النهائي)
         uses: actions/upload-artifact@v4
         with:
-          name: Koda-Final-Intelligence-Model
+          name: Koda-Universal-Model-V1
           path: |
             koda_brain_weights.npz
             vocab_data.json
