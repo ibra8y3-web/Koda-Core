@@ -13,8 +13,7 @@ jobs:
           python-version: '3.10'
 
       - name: Install Libraries
-        run: |
-          pip install numpy
+        run: pip install numpy
 
       - name: Run Koda Engine
         run: python koda_brain.py
