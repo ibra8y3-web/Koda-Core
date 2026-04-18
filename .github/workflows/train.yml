@@ -1,4 +1,4 @@
-name: Koda Cloud Training
+name: Koda Mega Cloud Training
 on: [push]
 jobs:
   train:
@@ -13,7 +13,27 @@ jobs:
           python-version: '3.10'
 
       - name: Install Libraries
-        run: pip install numpy
+        run: pip install numpy requests
 
-      - name: Run Koda Engine
+      - name: Dynamic Repo Hunter (صياد المستودعات)
+        run: |
+          # سكريبت بايثون سريع بيجيب روابط أشهر 1000 مستودع في كل المجالات
+          python -c "
+          import os, requests
+          topics = ['machine-learning', 'algorithms', 'mathematics', 'natural-language-processing', 'cpp', 'python', 'javascript', 'data-science']
+          for topic in topics:
+              print(f'🔎 جاري البحث عن أفضل مستودعات في مجال: {topic}')
+              url = f'https://api.github.com/search/repositories?q={topic}&sort=stars&order=desc&per_page=10'
+              try:
+                  repos = requests.get(url).json().get('items', [])
+                  for repo in repos:
+                      name = repo['name']
+                      link = repo['clone_url']
+                      print(f'📥 سحب مستودع: {name}')
+                      os.system(f'git clone --depth 1 {link} external/{name}')
+              except:
+                  continue
+          "
+
+      - name: Run Koda Multi-Brain Engine
         run: python koda_brain.py
