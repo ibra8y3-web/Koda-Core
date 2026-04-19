@@ -1,36 +1,32 @@
 name: Koda Continuous Intelligence
 
 on:
-push:
-schedule:
-- cron: "0 */6 * * *"
+  push:
+  schedule:
+    - cron: "0 */6 * * *"
 
 jobs:
-train:
-runs-on: ubuntu-latest
+  train:
+    runs-on: ubuntu-latest
 
-```
-steps:
-  - name: Checkout
-    uses: actions/checkout@v3
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-  - name: Setup Python
-    uses: actions/setup-python@v4
-    with:
-      python-version: "3.10"
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
 
-  - name: Install deps
-    run: |
-      pip install requests scikit-learn
+      - name: Install dependencies
+        run: |
+          pip install requests scikit-learn
 
-  - name: Run Brain
-    run: |
-      python koda_brain.py
+      - name: Run AI Brain
+        run: python koda_brain.py
 
-  - name: Upload Results
-    uses: actions/upload-artifact@v4
-    with:
-      name: koda-output
-      path: memory/
-```
-
+      - name: Upload memory
+        uses: actions/upload-artifact@v4
+        with:
+          name: koda-memory
+          path: memory/
