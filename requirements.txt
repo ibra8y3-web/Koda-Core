@@ -1,5 +1,2 @@
-numpy
-pandas
-faiss-cpu
-sentence-transformers
-
+scikit-learn
+requests

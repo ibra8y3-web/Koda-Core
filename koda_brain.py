@@ -1,95 +1,156 @@
 import os
-import requests
+import ast
 import json
+import requests
 import shutil
-import re
-from collections import Counter
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-TOPICS = [
-"machine-learning","deep-learning","algorithms",
-"python","javascript","cpp","cybersecurity"
-]
+DATA_DIR = "memory"
+DATA_FILE = os.path.join(DATA_DIR, "dataset.json")
 
-MEMORY_DIR = "memory"
-PROGRESS_FILE = "progress.json"
-VOCAB_FILE = os.path.join(MEMORY_DIR, "vocab.json")
+os.makedirs(DATA_DIR, exist_ok=True)
 
-os.makedirs(MEMORY_DIR, exist_ok=True)
+# تحميل البيانات
 
-# تحميل التقدم
-
-if os.path.exists(PROGRESS_FILE):
-done = set(json.load(open(PROGRESS_FILE)))
+if os.path.exists(DATA_FILE):
+dataset = json.load(open(DATA_FILE))
 else:
-done = set()
+dataset = []
 
-# تحميل المعرفة
+# =========================
 
-if os.path.exists(VOCAB_FILE):
-vocab = Counter(json.load(open(VOCAB_FILE)))
-else:
-vocab = Counter()
+# AST فهم الكود الحقيقي
 
-def analyze_code(path):
-global vocab
-for root, _, files in os.walk(path):
-for file in files:
-if file.endswith((".py",".js",".cpp",".java",".rs",".ts")):
+# =========================
+
+def extract_ast_features(code):
 try:
-full = os.path.join(root, file)
-with open(full, "r", errors="ignore") as f:
-text = f.read()
+tree = ast.parse(code)
+nodes = []
 
 ```
-                tokens = re.findall(r"[a-zA-Z_]{2,}", text.lower())
-                vocab.update(tokens)
+    for node in ast.walk(tree):
+        nodes.append(type(node).__name__)
 
-            except:
-                pass
+    return " ".join(nodes)
+except:
+    return ""
 ```
+
+# =========================
+
+# تنظيف + دمج
+
+# =========================
+
+def process_code(code):
+ast_features = extract_ast_features(code)
+return ast_features
+
+# =========================
+
+# جلب repos
+
+# =========================
 
 def fetch_repos():
+topics = ["python", "algorithms"]
 repos = []
-for topic in TOPICS:
-url = f"https://api.github.com/search/repositories?q={topic}&sort=stars&per_page=10"
-try:
-data = requests.get(url).json()
-repos.extend(data.get("items", []))
-except:
-pass
+
+```
+for t in topics:
+    url = f"https://api.github.com/search/repositories?q={t}&sort=stars&per_page=3"
+    try:
+        data = requests.get(url).json()
+        repos.extend(data.get("items", []))
+    except:
+        pass
+
 return repos
+```
 
+# =========================
+
+# التعلم
+
+# =========================
+
+def learn():
+global dataset
+
+```
 repos = fetch_repos()
-
 os.makedirs("temp", exist_ok=True)
 
 for repo in repos:
-name = repo["name"]
-clone = repo["clone_url"]
+    path = f"temp/{repo['name']}"
+
+    try:
+        os.system(f"git clone --depth 1 {repo['clone_url']} {path}")
+
+        for root, _, files in os.walk(path):
+            for f in files:
+                if f.endswith(".py"):
+                    try:
+                        code = open(os.path.join(root, f), errors="ignore").read()
+                        processed = process_code(code)
+
+                        if len(processed) > 20:
+                            dataset.append(processed)
+
+                    except:
+                        pass
+
+        shutil.rmtree(path, ignore_errors=True)
+
+    except:
+        pass
+
+json.dump(dataset, open(DATA_FILE, "w"))
+```
+
+# =========================
+
+# بناء موديل
+
+# =========================
+
+def build_model():
+if len(dataset) < 3:
+return None, None
 
 ```
-if name in done:
-    continue
+vectorizer = TfidfVectorizer(max_features=3000)
+X = vectorizer.fit_transform(dataset)
 
-path = f"temp/{name}"
-
-try:
-    print(f"Cloning {name}")
-    os.system(f"git clone --depth 1 {clone} {path}")
-
-    print(f"Learning from {name}")
-    analyze_code(path)
-
-    shutil.rmtree(path, ignore_errors=True)
-
-    done.add(name)
-
-    json.dump(list(done), open(PROGRESS_FILE, "w"))
-    json.dump(dict(vocab.most_common(50000)), open(VOCAB_FILE, "w"))
-
-except:
-    pass
+return vectorizer, X
 ```
 
-print("Done learning")
+# =========================
+
+# سؤال / رد
+
+# =========================
+
+def query(q):
+vectorizer, X = build_model()
+
+```
+if vectorizer is None:
+    return "لسه بيتعلم..."
+
+q_vec = vectorizer.transform([q])
+sim = cosine_similarity(q_vec, X)
+
+idx = sim.argmax()
+return dataset[idx][:300]
+```
+
+# =========================
+
+if **name** == "**main**":
+print("🔥 Learning...")
+learn()
+print("✅ Done.")
 
