@@ -1,57 +1,48 @@
-name: Koda Universal Intelligence (General + Tech)
-on: [push]
+name: Koda Continuous Intelligence
+
+on:
+push:
+schedule:
+- cron: "0 */6 * * *"
+
 jobs:
-  train:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+train:
+runs-on: ubuntu-latest
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+```
+steps:
+  - name: Checkout
+    uses: actions/checkout@v3
 
-      - name: Install Libraries
-        run: pip install numpy requests
+  - name: Restore Memory
+    uses: actions/download-artifact@v4
+    with:
+      name: Koda-Memory
+    continue-on-error: true
 
-      - name: Global Knowledge Hunter (صيد المعرفة الشاملة)
-        run: |
-          python -c "
-          import os, requests
-          # دمجنا التقنية مع العلوم العامة
-          topics = [
-              'machine-learning', 'algorithms', 'python', 'cpp', 'cybersecurity',
-              'knowledge-base', 'science-data', 'history-archive', 
-              'mathematics-logic', 'philosophy-books', 'linguistics', 
-              'general-knowledge', 'world-factbook', 'physics-engine'
-          ]
-          os.makedirs('external', exist_ok=True)
-          for topic in topics:
-              print(f'🌍 جاري استكشاف مجال: {topic}')
-              # رفعنا العدد لـ 50 مستودع من كل مجال لزيادة "الوعي"
-              url = f'https://api.github.com/search/repositories?q={topic}&sort=stars&order=desc&per_page=50'
-              try:
-                  repos = requests.get(url).json().get('items', [])
-                  for repo in repos:
-                      # سحب المجلدات للمقارنة والفهم
-                      os.system(f'git clone --depth 1 {repo[\"clone_url\"]} external/{repo[\"name\"]}')
-              except: continue
-          "
+  - name: Setup Python
+    uses: actions/setup-python@v4
+    with:
+      python-version: "3.10"
 
-      - name: Run Koda Multi-Brain Engine (بدء الاستيعاب)
-        run: python koda_brain.py
+  - name: Install deps
+    run: pip install numpy requests
 
-      - name: Save & Deliver Final Intelligence (تحميل العقل النهائي)
-        uses: actions/upload-artifact@v4
-        with:
-          name: Koda-Universal-Model-V1
-          path: |
-            koda_brain_weights.npz
-            vocab_data.json
+  - name: Run Brain
+    run: python koda_brain.py
 
-      - name: Save Koda Memory
-        uses: actions/upload-artifact@v4
-        with:
-          name: Koda-Updated-Intelligence
-          path: koda_brain_weights.npz
+  - name: Save Memory
+    uses: actions/upload-artifact@v4
+    with:
+      name: Koda-Memory
+      path: |
+        memory/
+        progress.json
+
+  - name: Final Output
+    uses: actions/upload-artifact@v4
+    with:
+      name: Koda-Final
+      path: memory/
+```
+

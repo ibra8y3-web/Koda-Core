@@ -1,63 +1,95 @@
 import os
-import numpy as np
+import requests
 import json
-import time
+import shutil
+import re
+from collections import Counter
 
-def koda_full_absorption():
-    print("🔋 إطلاق محرك الاستيعاب الشامل.. كودا يبني وعيه الآن.")
+TOPICS = [
+"machine-learning","deep-learning","algorithms",
+"python","javascript","cpp","cybersecurity"
+]
 
-    # 1. جمع كل المسارات
-    all_files = []
-    for root, _, files in os.walk("./external"):
-        for file in files:
-            if file.endswith((".py", ".cpp", ".js", ".md", ".txt", ".h", ".java", ".c")):
-                all_files.append(os.path.join(root, file))
+MEMORY_DIR = "memory"
+PROGRESS_FILE = "progress.json"
+VOCAB_FILE = os.path.join(MEMORY_DIR, "vocab.json")
 
-    total_files = len(all_files)
-    print(f"📚 إجمالي الملفات المكتشفة: {total_files}")
+os.makedirs(MEMORY_DIR, exist_ok=True)
 
-    # 2. بناء القاموس الشامل (من كل الملفات لضمان عدم النسيان)
-    print("🔍 جاري فحص كافة اللغات والرموز المتاحة...")
-    unique_chars = set()
-    # فحص عينة أكبر لضمان شمول كل الرموز (الرياضيات، البرمجة، اللغات)
-    for i in range(min(1000, total_files)): 
-        try:
-            with open(all_files[i], 'r', encoding='utf-8') as f:
-                unique_chars.update(f.read())
-        except: continue
+# تحميل التقدم
 
-    vocab = sorted(list(unique_chars))
-    vocab_size = len(vocab)
-    print(f"🔢 حجم القاموس المكتشف: {vocab_size} رمز.")
+if os.path.exists(PROGRESS_FILE):
+done = set(json.load(open(PROGRESS_FILE)))
+else:
+done = set()
 
-    # حفظ القاموس فوراً عشان "مرحلة النطق"
-    with open('vocab_data.json', 'w', encoding='utf-8') as f:
-        json.dump(vocab, f, ensure_ascii=False)
+# تحميل المعرفة
 
-    # 3. بناء المصفوفات العصبية (المخ)
-    # زودنا الحجم لـ 1024 عشان يستوعب "الدردشة العامة"
-    Wxh = np.random.randn(1024, vocab_size) * 0.01
+if os.path.exists(VOCAB_FILE):
+vocab = Counter(json.load(open(VOCAB_FILE)))
+else:
+vocab = Counter()
 
-    # 4. دورة التدريب والفهم العميق
-    processed_count = 0
-    for file_path in all_files:
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-                # عملية "التفكير" الرياضي
-                dummy_input = np.random.randn(vocab_size, 1)
-                _ = np.tanh(np.dot(Wxh, dummy_input))
+def analyze_code(path):
+global vocab
+for root, _, files in os.walk(path):
+for file in files:
+if file.endswith((".py",".js",".cpp",".java",".rs",".ts")):
+try:
+full = os.path.join(root, file)
+with open(full, "r", errors="ignore") as f:
+text = f.read()
 
-                processed_count += 1
-                if processed_count % 100 == 0:
-                    percent = (processed_count / total_files) * 100
-                    print(f"⚙️ وعي كودا: {percent:.2f}% | استيعاب: {os.path.basename(file_path)}")
-        except: continue
+```
+                tokens = re.findall(r"[a-zA-Z_]{2,}", text.lower())
+                vocab.update(tokens)
 
-    # 5. الحفظ النهائي (العقل الكامل)
-    np.savez("koda_brain_weights.npz", weights=Wxh)
-    print("🎯 تمت المهمة! كودا استوعب مليار حرف وهو الآن جاهز للدردشة.")
+            except:
+                pass
+```
 
-if __name__ == "__main__":
-    koda_full_absorption()
+def fetch_repos():
+repos = []
+for topic in TOPICS:
+url = f"https://api.github.com/search/repositories?q={topic}&sort=stars&per_page=10"
+try:
+data = requests.get(url).json()
+repos.extend(data.get("items", []))
+except:
+pass
+return repos
+
+repos = fetch_repos()
+
+os.makedirs("temp", exist_ok=True)
+
+for repo in repos:
+name = repo["name"]
+clone = repo["clone_url"]
+
+```
+if name in done:
+    continue
+
+path = f"temp/{name}"
+
+try:
+    print(f"Cloning {name}")
+    os.system(f"git clone --depth 1 {clone} {path}")
+
+    print(f"Learning from {name}")
+    analyze_code(path)
+
+    shutil.rmtree(path, ignore_errors=True)
+
+    done.add(name)
+
+    json.dump(list(done), open(PROGRESS_FILE, "w"))
+    json.dump(dict(vocab.most_common(50000)), open(VOCAB_FILE, "w"))
+
+except:
+    pass
+```
+
+print("Done learning")
 
